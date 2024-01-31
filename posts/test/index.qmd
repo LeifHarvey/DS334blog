@@ -1,0 +1,14 @@
+---
+title: "test"
+author: "Leif Harvey"
+date: "1/31/24"
+categories: [news, code, analysis]
+---
+
+```{r}
+#| warning: false
+library(palmerpenguins)
+library(tidyverse)
+ggplot(data = penguins, aes(x = bill_length_mm)) + geom_histogram(colour = "black")
+```
+

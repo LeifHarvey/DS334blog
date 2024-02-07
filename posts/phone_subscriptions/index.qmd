@@ -1,0 +1,13 @@
+---
+title: "Mobile and Landline Phone Subscriptions"
+author: "Leif Harvey"
+date: "2024-02-07"
+categories: [technology]
+image: "image.jpg"
+---
+
+This is a post with executable code.
+
+```{r}
+1 + 1
+```

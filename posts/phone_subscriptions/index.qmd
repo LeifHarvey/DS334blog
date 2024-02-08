@@ -2,12 +2,71 @@
 title: "Mobile and Landline Phone Subscriptions"
 author: "Leif Harvey"
 date: "2024-02-07"
-categories: [technology]
-image: "image.jpg"
+categories: [Technology, History]
+image: "phone.png"
 ---
 
-This is a post with executable code.
+# Introduction
+
+This post focuses on a Historical Phone Usage for mobile and land-line phones. The data sets contain 6,267 and 6,964 observation respectively. This post looks at the adoption of mobile phones in each country from 1990 until 2016. We are looking to examine how different continents adopted mobile technologies. Which continent adopted the quickest and which the slowest? Which continents had the most mobile subscriptions per 100 people in 2016? The data set comes from the tidytuesdayR Github repository (2020, week 46). The data can be found here: https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-11-10/readme.md.
+
+# Look at the Dataframe
+```{r}
+#| warning: false
+#| output: false
+
+library(tidytuesdayR)
+library(tidyverse)
+
+tuesdata <- tidytuesdayR::tt_load(2020, week = 46)
+raw_mobile <- tuesdata$mobile
+```
 
 ```{r}
-1 + 1
+head(raw_mobile)
 ```
+
+# Visualization
+```{r}
+#| warning: false
+#| output: false
+
+library(ggplot2)
+library(dplyr)
+
+raw_mobile$mobile_subs[is.na(raw_mobile$mobile_subs)] <- 0
+
+data_continent <- raw_mobile |>
+  group_by(continent, year) |>
+  summarise(mobile_subs = mean(mobile_subs))
+```
+
+```{r}
+ggplot(data = data_continent, aes(x = year, y = mobile_subs, color = continent)) + 
+  geom_line(linewidth = 2) + 
+  theme_minimal() +
+  labs(title = "Average Number of Phone Subscriptions in Different Countries",
+       y = "Average Number of Phone Subscriptions per 100 People",
+       x = "Year",
+       color = "Continent") + 
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 10),
+        title = element_text(size = 12))
+
+```
+
+The visual shows that Asia was the continent to most quickly adopt mobile technology and Africa was the slowest to adopt it. Africa began to really adopt it almost five years after the rest of the continents did. This doesn't come as much of a surprise. What is more interesting is that Africa has more phones per person than the Oceania region does. I was not expecting this, but it makes sense since Oceania has many islands that probably don't have a lot of technological innovation. It is clear that the Americas, Europe, and Asia have embraced the new tech with over 100 phones per 100 people on average for all those regions, whereas Africa and Oceania are lagging behind at only roughly 75 and 55 phones per 100 people respectively.
+
+I this this approach is flawed in a few ways. First is that one cannot see the underlying data or the sample size that is summarized in the graph with only a mean. Additionally, the continent groupings are very broad. The Americas continent is quite large and includes a multitude of countries with different technological footprints. This goes for many of these continents. If I had more time, I'd examine a select a handful countries to compare from different regions, or compare different countries to each other within a region.
+
+We have talked about coloring in homework and in class. In the visual, I used a categorical un-ordered color scale for the un-ordered categorical continents. We talked about different plots, and I think this line plot does a good job a representing this data. The plot was also kept simple and clean to avoid unnecessary clutter. For these reasons, I think this an effective visualization to answer the questions at hand.
+
+
+
+
+
+
+
+

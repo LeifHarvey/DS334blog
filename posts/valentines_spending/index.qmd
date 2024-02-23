@@ -78,7 +78,7 @@ Although participation has decreased, this has not coincided with a decrease in 
 gifts_age_total <- gifts_age |> mutate(total_spending = SpendingCelebrating + Candy + Flowers + Jewelry + GreetingCards + EveningOut + Clothing + GiftCards)
 
 ggplot(data = gifts_age, aes(x = Age, y = SpendingCelebrating)) + 
-  geom_col(fill = "lightblue", color = "blue", linewidth = 1) + 
+  geom_col(fill = "#DC143C", color = "#900C3F", linewidth = 1) + 
   theme_minimal() +
   ylab("Amount Spend Celebrating (USD)") +
   theme(axis.text.x = element_text(size = 15),

@@ -3,7 +3,7 @@ title: "Valentine's Day Spending"
 author: "Leif Harvey"
 date: "2024-02-20"
 categories: [Culture, Consumer]
-image: ""
+image: "valentines.jpg"
 ---
 
 # Introduction

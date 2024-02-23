@@ -1,0 +1,103 @@
+---
+title: "Valentine's Day Spending"
+author: "Leif Harvey"
+date: "2024-02-20"
+categories: [Culture, Consumer]
+image: ""
+---
+
+# Introduction
+
+This post focuses on Valentine's Day spending. The data set contains data for years 2010 to 2022, and the survey asked various questions to consumers on how they planned to celebrate Valentine's Day. We will investigate the differences in spending between age categories, see if less people are participating in Valentine's day now than in the past, as well as determine if spending has changed over the years. The data set comes from the tidytuesdayR Github repository (2024, week 7). The data can be found here: https://github.com/rfordatascience/tidytuesday/blob/master/data/2024/2024-02-13/readme.md
+
+# Look at the Dataframe
+```{r}
+#| output: false
+
+# ggsave(here::here("posts/test/img.png"), cover_img, width = 5, height = 4)
+
+library(tidytuesdayR)
+library(tidyverse)
+
+tuesdata <- tidytuesdayR::tt_load(2024, week = 7)
+
+historical_spending <- tuesdata$historical_spending
+gifts_age <- tuesdata$gifts_age
+gifts_gender <- tuesdata$gifts_gender
+```
+
+```{r}
+historical_spending |> select(Year, PerPerson)
+```
+
+The data provides a few spending metrics as well as the percent celebrating for each year. So has participation changed since 2010?
+
+## Participation
+```{r}
+
+
+ggplot(data = historical_spending, aes(x = Year, y = PercentCelebrating)) + 
+  geom_point(size = 2) + 
+  geom_line(alpha = 0.7) + 
+  ylim(0,70) + 
+  theme_minimal() +
+  ylab("Percent of Population Partcipating in Valentine's Day") +
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 15),
+        title = element_text(size = 12))
+```
+
+It appears the percentage of people celebrating Valentine's has slightly decreased since 2010 from roughly 60 percent celebrating to just over 50 percent celebrating. Has this meant a decrease in spending?
+
+## Spending
+```{r}
+library(readr)
+valentines_inflation <- read_csv("valentines_inflation.csv")
+
+ggplot(data = historical_spending, aes(x = Year, y = PerPerson)) + 
+  geom_point(size = 2) + 
+  ylim(0,200) + 
+  geom_point(data = valentines_inflation, aes(x = Year, y = PerPersonInflation), color = "red", size = 2) + 
+  theme_minimal() +
+  ylab("Spending Per Participant") +
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 15),
+        title = element_text(size = 12))
+```
+
+Although participation has decreased, this has not coincided with a decrease in spending per person for those who participate. The average spending per person rose from roughly 100 dollars to 175 dollars from 2010 to 2022. Adjusting for inflation* (shown in red), 175 dollars in 2022 was equivalent to 133 dollars in 2010, so there is still a thirty percent increase even after accounting for inflation. Spending is clearly up, but who is spending the most?
+
+*Used CPI inflation.
+
+## Spending By Age
+```{r}
+gifts_age_total <- gifts_age |> mutate(total_spending = SpendingCelebrating + Candy + Flowers + Jewelry + GreetingCards + EveningOut + Clothing + GiftCards)
+
+ggplot(data = gifts_age, aes(x = Age, y = SpendingCelebrating)) + 
+  geom_col(fill = "lightblue", color = "blue", linewidth = 1) + 
+  theme_minimal() +
+  ylab("Amount Spend Celebrating (USD)") +
+  theme(axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 15),
+        title = element_text(size = 12))
+```
+
+It is clear that order populations spend less than younger populations, which was expected. The youngest group (18-24) spend over twice as much money on celebrating compared to the groups over 45 years old. 65+ individuals only spent around 15.
+
+Some of the analysis was limited because the underlying data and the sample size are not provided with the data set. The summaries and totals were only provided, which hides a lot of the potential spread.
+
+As for applying course content, I have chosen appropriate visuals to make for each of the questions, and have modified the theme to make them more readable and appealing. I also calculated by hand the spending adjusted for inflation to more accurately depict the trend in the data in the second visual. Generally, I have applied the concepts from class to build effective and easy to understand visuals.
+
+
+
+
+
+
+
+

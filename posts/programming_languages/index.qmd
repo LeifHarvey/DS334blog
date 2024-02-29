@@ -1,0 +1,110 @@
+---
+title: "Programming Languages"
+author: "Leif Harvey"
+date: "2024-03-01"
+categories: [Computer Science, Programming, Technology]
+image: "coding_languages.jpg"
+---
+
+# Introduction
+
+This post focuses on programming languages and their popularity. The data set is from 2020 contains information for 4303 languages, and has 48 variables ranging from popularity, to github information, to specifics about each language. Which languages have the most users? Does the type of language has an effect on its popularity? Does the date of release have an effect on the popularity? Do wikipedia metrics coenside with the popularity of a language? The data set comes from the tidytuesdayR Github repository (2023, week 12). The data can be found here: https://github.com/rfordatascience/tidytuesday/blob/master/data/2023/2023-03-21/readme.md
+
+# A Look at the Data
+```{r}
+#| warning: false
+#| output: false
+
+library(tidytuesdayR)
+library(tidyverse)
+library(ggrepel)
+library(scales)
+
+tuesdata <- tidytuesdayR::tt_load('2023-03-21')
+tuesdata <- tidytuesdayR::tt_load(2023, week = 12)
+
+languages <- tuesdata$languages
+
+languages |> select(title, type, appeared, book_count, language_rank, wikipedia_daily_page_views, number_of_users, number_of_jobs, features_has_comments, features_has_semantic_indentation)
+```
+
+# Which Languages have the Most Users?
+```{r}
+#| warning: false
+
+languages_users <- languages |> filter(number_of_users > 100000)
+
+p <- ggplot(data = languages_users, aes(x = number_of_users)) + 
+  geom_col(aes(y = fct_reorder(title, -number_of_users)), fill = "lightblue", color = "darkblue") + 
+  theme_minimal() + 
+  labs(x = "Number of Users", y = "Language", title = "Users for Different Languages") + 
+  theme(axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        title = element_text(size = 15),
+        axis.title.y = element_text(size = 15),
+        axis.title.x = element_text(size = 15))
+
+p + scale_x_continuous(labels = label_comma())
+```
+
+SQL sits atop the leader board along with web languages like Javascript, HTML, and CSS, but also with languages like Java, C++, C, and Python. Cool to see ARM made in onto this list. R was in 13th as of the release of this data in 2020. This list contains languages that are for various applications, so does a language's type play a role in its popularity?
+
+
+# Language Type on Language's Popularity
+```{r}
+#| warning: false
+
+languages_type <- languages |> 
+  filter(language_rank < 2000) |> 
+  group_by(type) |> 
+  summarise(mean_rank = mean(language_rank), group_count = n()) |> 
+  filter(group_count >= 5) |>
+  filter(mean_rank < 1500)
+
+ggplot(data = languages_type, aes(x = fct_reorder(type, -mean_rank), y = mean_rank)) +
+  geom_col(fill = "lightblue", color = "darkblue") + 
+  coord_flip() + 
+  theme_minimal() + 
+  labs(x = "Language Type", y = "Mean Rank", title = "Mean Rank for Different Language Types")
+```
+
+I have only used the top 2000 languages for this graphic. When grouping by Language Type, I have removed types that had less than 5 languages. This graph then shows all the language types with a mean rank of less than 1500. Style sheet languages sit on top (languages like CSS), but programming languages (pl) are quite far down the list with a mean rank of a bit over 900. This makes sense since there are so many of them.
+
+
+# Release Date on Languages's Popularity
+```{r}
+#| warning: false
+
+languages_release <- languages |> filter(appeared > 1925)
+
+release_lm <- lm(language_rank ~ appeared, data = languages_release)
+
+ggplot(data = languages_release, aes(x = appeared, y = language_rank)) + 
+  geom_jitter(width = 0.25, alpha = 0.5) + 
+  geom_line(data = release_lm, aes(x = appeared, y = .fitted), linewidth = 2, color = "red") +
+  theme_minimal() + 
+  labs(x = "Date Released", y = "Language Popularity Rank")
+```
+
+The data had some languages that appeared as early as -2000 BCE, and I was interested in new language's popularity, so I have removed languages released before 1925 (this was less than 15 observation out of 4303). I have plotted a red line which is a linear model predicting the language's rank based on when it was released It shows that newer languages tend to be more popular. Looking at the data more closely, however, shows that there aren't many languages released since 2015 that are in the top 250 or so.
+
+# Wikipedia Metrics on Languages's Popularity
+```{r}
+#| warning: false
+
+high_views <- languages |> filter(wikipedia_daily_page_views > 5000)
+r <- languages |> filter(title == "R")
+
+ggplot(data = languages, aes(x = wikipedia_daily_page_views, y = language_rank)) + 
+  geom_point(alpha = 0.3) + 
+  geom_text_repel(data = high_views, aes(label = title), box.padding = 0.5) + 
+  geom_text_repel(data = r, aes(label = title), box.padding = 0.5) + 
+  theme_minimal() +
+  ylim(0, 3000) + 
+  labs(x = "Daily Wikipedia Page Views", y = "Language Popularity Rank")
+```
+
+There is a clear non-linear relationship between the number of daily Wikipedia page views and the language's popularity. There are almost no languages with a lot of daily pages views that are outside the top 500 in languages. Unsurprisingly, Java, C, and Python all are in the top 10 of daily page views. R is also up there with roughly 3000 daily page views.
+
+
+

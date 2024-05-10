@@ -1,0 +1,244 @@
+---
+title: "Computer Chip Performance"
+author: "Leif Harvey"
+date: "2024-05-9"
+categories: [Computer Science, Technology]
+image: "cpu.png"
+---
+
+```{r}
+#| warning: false
+#| echo: false
+
+library(ggplot2)
+library(tidyverse)
+library(plotly)
+library(broom)
+library(readr)
+library(plotly)
+
+library(keras)
+library(tensorflow)
+
+#install_tensorflow()
+
+library(keras)
+library(tensorflow)
+
+chips_origional <- read_csv("chip_dataset.csv")
+
+chips <- chips_origional |> rename(transistors = `Transistors (million)`, die_size = `Die Size (mm^2)`, freq = `Freq (MHz)`, TDP = `TDP (W)`, process_size = `Process Size (nm)`, date = `Release Date`, fp16gflops = `FP16 GFLOPS`, fp32gflops = `FP32 GFLOPS`, fp64gflops = `FP64 GFLOPS`)
+
+```
+
+# Introduction
+
+The project will examine performance of CPU and GPU chips made since 2000. The data set includes chips made by multiple vendors such as Intel, NVIDIA, ATI, and AMD. Other variables include the process size, thermal design power, die size, number of transistors, frequency, foundry, and GFLOPS. GFLOPS is a way to compare the performance of graphics cards and stands for a billion floating point operations per second.
+
+```{r}
+chips_origional |> slice(1:5) |> select(2:5, 9:11)
+```
+
+# Is there a Best Foundry?
+
+One potential issue when looking a foundries and performance is that the foundries have partnerships with certain vendors, which may be producing better or worse products. Lets go ahead and look anyway with this in mind. The plot is interactive and shows the vendor when the points are hovered over.
+
+```{r}
+#| warning: false
+
+gpu <- chips |> filter(!is.na(fp32gflops))
+
+foundry_glops <- ggplot(data = gpu, aes(x = Foundry, y = fp32gflops, label = Vendor)) + 
+  geom_jitter(alpha = 0.5) + 
+  theme_minimal() + 
+  ylab("FP32GFLOPS") + 
+  labs(title = "Foundry vs FP-32-GFLOPS",
+       caption = "GFLOPS represents Billions of Floating Point Operations Per Second")
+
+ggplotly(foundry_glops, tooltip = "label")
+```
+
+It appears as Samsung is a proxy for NVIDIA as it mainly produces NVIDIA GPUs. TSMC produces products for everyone but Intel. I'd say Intel mainly focuses on CPUs and many of the GPUs are just integrated ones. GF also has some high performing chips, which are all AMD chips.
+
+# Moore's Law
+
+Co-founder of Fairchild Semiconductor and Co-founder and CEO of Intel Gordon Moore made the observation that the number of transistors in an integrated circuit doubled about every 2 years. In 1965, Moore predicted a doubling every year for at least a decade, and in 1975, Moore changed his prediction to every two years which has held since then. We can look at the number of transistors over the time period of this data set which has chips since 2000.
+
+```{r}
+#| warning: false
+
+chips$date <- as.Date(chips$date)
+
+foundry_glops <- ggplot(data = chips, aes(x = date, y = transistors, label = date)) + 
+  geom_point(alpha = 0.5) + 
+  theme_minimal() + 
+  ylab("Transistors") + 
+  labs(title = "Transistors over Time") +
+  scale_x_date(date_labels = "%Y-%m")
+
+ggplotly(foundry_glops, tooltip = "label")
+```
+
+The plot shows an exponential trend which indeed lines up with Moore's prediction. The graph shows that we have really just hit the exponential curve. Looking at this graph with just CPUs we get:
+
+```{r}
+#| warning: false
+
+CPU_chips <- chips |> filter(Type == "CPU")
+
+foundry_glops <- ggplot(data = CPU_chips, aes(x = date, y = transistors, label = date)) + 
+  geom_point(alpha = 0.5) + 
+  theme_minimal() + 
+  ylab("Transistors") + 
+  labs(title = "CPU Transistors over Time") +
+  scale_x_date(date_labels = "%Y-%m")
+
+ggplotly(foundry_glops, tooltip = "label")
+```
+
+And for GPUs:
+
+```{r}
+#| warning: false
+
+GPU_chips <- chips |> filter(Type == "GPU")
+
+foundry_glops <- ggplot(data = GPU_chips, aes(x = date, y = transistors, label = date)) + 
+  geom_point(alpha = 0.5) + 
+  theme_minimal() + 
+  ylab("Transistors") + 
+  labs(title = "GPU Transistors over Time") +
+  scale_x_date(date_labels = "%Y-%m")
+
+ggplotly(foundry_glops, tooltip = "label")
+```
+
+The 'law' holds up for both, but slightly better with GPUs.
+
+# Chip Performance over Time
+
+Let us look at the performance changes in chips over time. Using the fp32gflops metric which is the number of 32 bit integer floating point operations per second in billions, we s
+
+```{r}
+#| warning: false
+
+no_na_g <- chips |> filter(!is.na(fp32gflops))
+no_na_g$date <- as.Date(no_na_g$date)
+
+ggplot(data = no_na_g, aes(x = date, y = fp32gflops)) + 
+  geom_point() + 
+  theme_minimal() + 
+  ylab("Billion Floating Point Operation per Second") + 
+  xlab("Date") + 
+  scale_x_date(date_labels = "%Y-%m")
+```
+
+We see a similar trend here as we did with the transistor count. The number of operations appears to be exponentially increasing with time. What factors are contributing to this?
+
+### Die Size
+```{r}
+#| warning: false
+
+ggplot(data = no_na_g, aes(x = die_size, y = fp32gflops)) + 
+  geom_point() + 
+  theme_minimal() + 
+  ylab("Billion Floating Point Operation per Second") + 
+  xlab("Die Size")
+```
+
+Die size seems to have an effect on the number of operations per second, but has it increased with time?
+
+```{r}
+#| warning: false
+
+ggplot(data = no_na_g, aes(x = date, y = die_size)) + 
+  geom_point() + 
+  theme_minimal() + 
+  ylab("Die Size") + 
+  xlab("Date") + 
+  scale_x_date(date_labels = "%Y-%m")
+```
+
+Die size does not seem to have changed much over the last decade, so perhaps it isn't the culprit of the increased performance.
+
+### Frequency
+```{r}
+#| warning: false
+
+ggplot(data = no_na_g, aes(x = freq, y = fp32gflops)) + 
+  geom_point() + 
+  theme_minimal() + 
+  ylab("Billion Floating Point Operation per Second") + 
+  xlab("Frequency")
+```
+
+Frequency has a distinct effect on the number of operations per second. The higher the frequency the more operations able to be done per second.
+
+```{r}
+#| warning: false
+
+ggplot(data = no_na_g, aes(x = date, y = freq)) + 
+  geom_point() + 
+  theme_minimal() + 
+  ylab("Frequency") + 
+  xlab("Date") + 
+  scale_x_date(date_labels = "%Y-%m")
+```
+
+Unlike die size, frequency does clearly improve over time in a linear fashion, so this could be one reason for the increased performance.
+
+### TDP
+```{r}
+#| warning: false
+
+ggplot(data = no_na_g, aes(x = TDP, y = fp32gflops)) + 
+  geom_point() + 
+  theme_minimal() + 
+  ylab("Billion Floating Point Operation per Second") + 
+  xlab("Thermal Design Power")
+```
+
+Thermal design power doesn't seem to have a clear effect on the number of operations per second.
+
+```{r}
+#| warning: false
+
+ggplot(data = no_na_g, aes(x = date, y = TDP)) + 
+  geom_point() + 
+  theme_minimal() + 
+  ylab("Thermal Design Power") + 
+  xlab("Date") + 
+  scale_x_date(date_labels = "%Y-%m")
+```
+
+Thermal design power doesn't appear to play to critical of a role in the improved performance over the last few decades.
+
+### Processor Size
+```{r}
+#| warning: false
+
+ggplot(data = no_na_g, aes(x = process_size, y = fp32gflops)) + 
+  geom_point() + 
+  theme_minimal() + 
+  ylab("Billion Floating Point Operation per Second") + 
+  xlab("Processor Size")
+```
+
+Processor size clearly has effect on the number of operations per second. It mimics a exponential decay function; larger processors are exponentially slower.
+
+```{r}
+#| warning: false
+
+ggplot(data = no_na_g, aes(x = date, y = process_size)) + 
+  geom_point() + 
+  theme_minimal() + 
+  ylab("Processor Size") + 
+  xlab("Date") + 
+  scale_x_date(date_labels = "%Y-%m")
+```
+
+Processor size seems to play a large role in the improved performance over the last few decades. Chips seem to be decreasing in size at almost the same rate as the number of transistors has been growing.
+
+Overall, it appears that the number of transistors, the frequency, and the processor size are the main reasons why chip performance has increased year over year. These variables show strong relationships with the performance metric as well as a increase or, in the case of processor size, decrease over time.
+
+

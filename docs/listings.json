@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/finalproject/index.html",
       "/posts/programming_languages/index.html",
       "/posts/valentines_spending/index.html",
       "/posts/phone_subscriptions/index.html"

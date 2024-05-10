@@ -107,4 +107,3 @@ ggplot(data = languages, aes(x = wikipedia_daily_page_views, y = language_rank))
 There is a clear non-linear relationship between the number of daily Wikipedia page views and the language's popularity. There are almost no languages with a lot of daily pages views that are outside the top 500 in languages. Unsurprisingly, Java, C, and Python all are in the top 10 of daily page views. R is also up there with roughly 3000 daily page views.
 
 
-

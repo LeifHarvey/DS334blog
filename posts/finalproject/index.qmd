@@ -35,6 +35,8 @@ chips <- chips_origional |> rename(transistors = `Transistors (million)`, die_si
 
 The project will examine performance of CPU and GPU chips made since 2000. The data set includes chips made by multiple vendors such as Intel, NVIDIA, ATI, and AMD. Other variables include the process size, thermal design power, die size, number of transistors, frequency, foundry, and GFLOPS. GFLOPS is a way to compare the performance of graphics cards and stands for a billion floating point operations per second.
 
+The full project can be found here: https://github.com/LeifHarvey/DS334_Final_Project/tree/main
+
 ```{r}
 chips_origional |> slice(1:5) |> select(2:5, 9:11)
 ```
